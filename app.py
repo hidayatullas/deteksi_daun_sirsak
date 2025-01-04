@@ -5,12 +5,28 @@ import numpy as np
 import os
 from PIL import Image
 from datetime import datetime
+import requests
 # from flask_cors import CORS
 
 app = Flask(__name__)
 
+# URL ke file model Anda
+model_url = "https://drive.google.com/uc?id=163vwnNcqY95CAEHGpRnZzuAYw09rW_pg"
+model_path = "MobileNetV2-pest-72.50.h5"
+
+# Unduh model jika belum ada
+if not os.path.exists(model_path):
+    print("Downloading model file...")
+    response = requests.get(model_url)
+    with open(model_path, "wb") as f:
+        f.write(response.content)
+    print("Model downloaded.")
+
+# Load model setelah file tersedia
+model_mobilenetv2 = load_model(model_path)
+
 # Load MobileNetV2 model
-model_mobilenetv2 = load_model("MobileNetV2-pest-72.50.h5")
+# model_mobilenetv2 = load_model("MobileNetV2-pest-72.50.h5")
 
 UPLOAD_FOLDER = 'static/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -43,7 +59,8 @@ def index():
         # Prepare image for prediction
         img = load_img(file_path, target_size=(224, 224))
         x = img_to_array(img)
-        x = x / 127.5 - 1  # Normalize the image
+        # x = x / 127.5 - 1  # Normalize the image
+        x = x / 255.0  # Normalisasi standar
         x = np.expand_dims(x, axis=0)
 
         # Predict
